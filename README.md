@@ -12,7 +12,8 @@ A criança ouve a pergunta (botão de alto-falante) e toca na resposta certa.
 - Quantificação e representação com números e desenhos
 - Comparação (quem tem mais / menos) e números (antes, depois, por extenso)
 
-Os exercícios são **gerados em C#**. O jogo guarda no navegador quais já
+Os exercícios são **gerados em C#**: cerca de 2.700 diferentes no nível
+Fácil (até 10) e 5.700 no Desafio (até 20). O jogo guarda no navegador quais já
 apareceram e pede ao servidor só exercícios novos, então eles se repetem o
 mínimo possível. Quando todos de um tema já foram vistos, o ciclo recomeça.
 
