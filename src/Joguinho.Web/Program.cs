@@ -1,7 +1,8 @@
 using Joguinho.Core;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddSingleton<BancoDeExercicios>();
+// Instância criada à mão: o DI escolheria o construtor com IEnumerable<IGerador> vazio.
+builder.Services.AddSingleton(new BancoDeExercicios());
 
 var app = builder.Build();
 
