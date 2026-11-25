@@ -54,7 +54,8 @@ public sealed class BancoDeExercicios
 
         int disponiveis = 0, novos = 0;
         bool recomecou = false;
-        var filas = new List<Queue<string>>();
+        var ineditasPorTopico = new List<Queue<string>>();
+        var vistasPorTopico = new List<Queue<string>>();
 
         foreach (var topico in topicos)
         {
@@ -63,49 +64,57 @@ public sealed class BancoDeExercicios
             var ineditas = chaves.Where(c => !vistos.Contains(c)).ToList();
             disponiveis += chaves.Count;
             novos += ineditas.Count;
+            if (ineditas.Count == 0) recomecou = true;
 
-            List<string> ordem;
-            if (ineditas.Count == 0)
-            {
-                recomecou = true;
-                ordem = Util.Embaralhar(chaves, rnd);
-            }
-            else
-            {
-                var nucleosVistos = new HashSet<string>(chaves.Where(vistos.Contains).Select(g.Nucleo));
-                var embaralhadas = Util.Embaralhar(ineditas, rnd);
-                ordem = embaralhadas.Where(c => !nucleosVistos.Contains(g.Nucleo(c)))
-                    .Concat(embaralhadas.Where(c => nucleosVistos.Contains(g.Nucleo(c))))
-                    .ToList();
-                if (ordem.Count < quantidade)
-                    ordem.AddRange(Util.Embaralhar(chaves.Where(vistos.Contains), rnd));
-            }
-            filas.Add(new Queue<string>(ordem));
+            // Inéditas primeiro com núcleo nunca visto, depois as de núcleo já visto.
+            var nucleosVistos = new HashSet<string>(chaves.Where(vistos.Contains).Select(g.Nucleo));
+            var embaralhadas = Util.Embaralhar(ineditas, rnd);
+            var ordem = embaralhadas.Where(c => !nucleosVistos.Contains(g.Nucleo(c)))
+                .Concat(embaralhadas.Where(c => nucleosVistos.Contains(g.Nucleo(c))));
+            ineditasPorTopico.Add(new Queue<string>(ordem));
+            vistasPorTopico.Add(new Queue<string>(Util.Embaralhar(chaves.Where(vistos.Contains), rnd)));
         }
 
-        // Rodízio entre os tópicos para misturar os conteúdos.
         var escolhidos = new List<Exercicio>();
         var nucleosDaRodada = new HashSet<string>();
         var ordemTopicos = Util.Embaralhar(Enumerable.Range(0, topicos.Count), rnd);
-        bool avancou = true;
-        while (escolhidos.Count < quantidade && avancou)
+
+        // Rodízio entre os tópicos para misturar os conteúdos.
+        // unico = não aceita núcleo repetido na rodada; adiadas recebe as chaves puladas.
+        void Rodizio(List<Queue<string>> fontes, bool unico, List<Queue<string>>? adiadas)
         {
-            avancou = false;
-            foreach (int i in ordemTopicos)
+            bool avancou = true;
+            while (escolhidos.Count < quantidade && avancou)
             {
-                if (escolhidos.Count >= quantidade) break;
-                var g = _geradores[topicos[i]];
-                var fila = filas[i];
-                while (fila.Count > 0)
+                avancou = false;
+                foreach (int i in ordemTopicos)
                 {
-                    var chave = fila.Dequeue();
-                    if (!nucleosDaRodada.Add(g.Nucleo(chave))) continue;
-                    escolhidos.Add(g.Criar(chave, rnd));
-                    avancou = true;
-                    break;
+                    if (escolhidos.Count >= quantidade) return;
+                    var g = _geradores[topicos[i]];
+                    var fila = fontes[i];
+                    while (fila.Count > 0)
+                    {
+                        var chave = fila.Dequeue();
+                        bool nucleoNovo = nucleosDaRodada.Add(g.Nucleo(chave));
+                        if (unico && !nucleoNovo)
+                        {
+                            adiadas?[i].Enqueue(chave);
+                            continue;
+                        }
+                        escolhidos.Add(g.Criar(chave, rnd));
+                        avancou = true;
+                        break;
+                    }
                 }
             }
         }
+
+        var adiadasIneditas = topicos.Select(_ => new Queue<string>()).ToList();
+        var adiadasVistas = topicos.Select(_ => new Queue<string>()).ToList();
+        Rodizio(ineditasPorTopico, unico: true, adiadasIneditas); // 1) novas, contas diferentes
+        Rodizio(adiadasIneditas, unico: false, null);              // 2) novas, mesmo que a conta se pareça
+        Rodizio(vistasPorTopico, unico: true, adiadasVistas);      // 3) já vistas (acabaram as novas)
+        Rodizio(adiadasVistas, unico: false, null);
 
         return new Rodada(escolhidos, disponiveis, novos, recomecou);
     }

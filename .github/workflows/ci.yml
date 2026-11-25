@@ -16,3 +16,5 @@ jobs:
         run: dotnet build src/Joguinho.Core
       - name: Compilar site
         run: dotnet build src/Joguinho.Web
+      - name: Testes
+        run: dotnet test tests/Joguinho.Tests
