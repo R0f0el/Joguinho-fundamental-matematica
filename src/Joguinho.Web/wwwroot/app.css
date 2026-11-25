@@ -14,6 +14,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { margin: 0; background: #f6f8fc; font-family: 'Nunito', sans-serif; color: var(--texto); }
 h2 { margin: 0; font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 22px; }
 button { font-family: inherit; }
