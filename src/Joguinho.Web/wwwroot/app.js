@@ -144,9 +144,7 @@
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (rodada) {
         estado.rodada = rodada.exercicios || [];
-        estado.feitos = 0;
-        lista.innerHTML = '';
-        estado.rodada.forEach(function (ex) { lista.appendChild(cartao(ex)); });
+        mostrarRodada();
         mensagem(rodada.recomecou
           ? 'Você já fez todos de algum assunto! Vamos recomeçar esse.'
           : 'Toque no alto-falante para ouvir e escolha a resposta certa.');
@@ -161,10 +159,39 @@
       });
   }
 
+  function mostrarRodada() {
+    var lista = $('exercicios');
+    estado.feitos = 0;
+    lista.innerHTML = '';
+    $('parabens').hidden = true;
+    estado.rodada.forEach(function (ex) { lista.appendChild(cartao(ex)); });
+    atualizarPlacar();
+  }
+
+  function repetirRodada() {
+    if (!estado.rodada.length) return;
+    mostrarRodada();
+    mensagem('Vamos fazer a mesma rodada de novo!');
+    window.scrollTo(0, 0);
+  }
+
+  function refazer(ex, caixa) {
+    var novo = cartao(ex);
+    caixa.replaceWith(novo);
+    estado.feitos = Math.max(0, estado.feitos - 1);
+    $('parabens').hidden = true;
+    atualizarPlacar();
+    mensagem('Tente de novo esse exercício!');
+  }
+
   function concluir(ex, caixa) {
     if (caixa.classList.contains('feito')) return;
     caixa.classList.add('feito');
     caixa.appendChild(el('p', 'acertou', 'Acertou!'));
+    var de_novo = el('button', 'botao contorno pequeno', 'Fazer de novo');
+    de_novo.type = 'button';
+    de_novo.addEventListener('click', function () { refazer(ex, caixa); });
+    caixa.appendChild(de_novo);
     marcarVisto(ex.chave);
     estado.feitos++;
     atualizarPlacar();
@@ -399,6 +426,7 @@
   // ---------- início ----------
   $('comecar').addEventListener('click', novaRodada);
   $('proxima').addEventListener('click', novaRodada);
+  $('repetir').addEventListener('click', repetirRodada);
   $('voltar').addEventListener('click', function () {
     $('tela-jogo').hidden = true;
     $('tela-menu').hidden = false;
