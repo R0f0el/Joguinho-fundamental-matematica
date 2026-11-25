@@ -19,7 +19,14 @@ mínimo possível. Se a criança quiser treinar de novo, pode usar
 **Repetir rodada** (refaz a rodada inteira) ou **Fazer de novo** (refaz um
 exercício já acertado). Quando todos de um tema já foram vistos, o ciclo recomeça.
 
-## Como rodar
+## Jogar online
+
+https://r0f0el.github.io/Joguinho-fundamental-matematica/
+
+A cada push na `main`, o GitHub Actions publica o jogo no GitHub Pages.
+Lá o C# roda dentro do navegador (Blazor WebAssembly), sem servidor.
+
+## Como rodar no computador
 
 Precisa do [.NET 8 SDK](https://dotnet.microsoft.com/download).
 
@@ -40,5 +47,6 @@ dotnet test tests/Joguinho.Tests
 ```
 src/Joguinho.Core   geradores de exercícios e seletor sem repetição
 src/Joguinho.Web    API (ASP.NET Core) + jogo (wwwroot)
+src/Joguinho.Pages  versão WebAssembly para o GitHub Pages
 tests/Joguinho.Tests  testes xUnit
 ```

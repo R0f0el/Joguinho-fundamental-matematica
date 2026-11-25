@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="/">
+<title>Joguinho de Matemática</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="app">
+  <header class="topo">
+    <div class="topo-linha">
+      <p class="titulo">Meu Joguinho de Matemática</p>
+      <p class="placar" id="placar"></p>
+    </div>
+    <p class="mensagem" id="mensagem">Carregando o jogo...</p>
+  </header>
+
+  <main id="tela-menu" class="conteudo">
+    <p class="ajuda">Escolha os assuntos e o nível. Toque no <b>alto-falante</b> para ouvir cada pergunta.</p>
+    <section class="bloco">
+      <h2>Assuntos</h2>
+      <div id="topicos" class="chips"></div>
+    </section>
+    <section class="bloco">
+      <h2>Nível</h2>
+      <div class="chips" id="niveis">
+        <button type="button" class="chip" data-nivel="1">Fácil (até 10)</button>
+        <button type="button" class="chip" data-nivel="2">Desafio (até 20)</button>
+      </div>
+    </section>
+    <p class="ajuda" id="progresso">Carregando...</p>
+    <div class="botoes">
+      <button type="button" class="botao" id="comecar" disabled>Começar</button>
+    </div>
+  </main>
+
+  <main id="tela-jogo" class="conteudo" hidden>
+    <div id="exercicios" class="lista"></div>
+    <div id="parabens" class="parabens" hidden>
+      <p class="parabens-titulo">Parabéns! Rodada completa!</p>
+      <p>Toque em “Repetir rodada” para treinar os mesmos ou em “Próxima rodada” para ver novos.</p>
+    </div>
+    <div class="botoes">
+      <button type="button" class="botao" id="proxima">Próxima rodada</button>
+      <button type="button" class="botao contorno" id="repetir">Repetir rodada</button>
+      <button type="button" class="botao contorno" id="voltar">Menu</button>
+    </div>
+  </main>
+</div>
+<div id="blazor" hidden></div>
+<script src="_framework/blazor.webassembly.js" autostart="false"></script>
+<script>window.JOGUINHO_WASM = Blazor.start();</script>
+<script src="figuras.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+name: Publicar no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publicar versão WebAssembly
+        run: dotnet publish src/Joguinho.Pages -c Release -o saida
+      - name: Copiar o jogo e ajustar endereço
+        run: |
+          cp src/Joguinho.Web/wwwroot/app.js src/Joguinho.Web/wwwroot/app.css src/Joguinho.Web/wwwroot/figuras.js saida/wwwroot/
+          sed -i 's|<base href="/">|<base href="/${{ github.event.repository.name }}/">|' saida/wwwroot/index.html
+          cp saida/wwwroot/index.html saida/wwwroot/404.html
+          touch saida/wwwroot/.nojekyll
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: saida/wwwroot
+      - id: deploy
+        uses: actions/deploy-pages@v4

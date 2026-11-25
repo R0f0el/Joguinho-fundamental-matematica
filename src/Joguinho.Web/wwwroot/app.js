@@ -64,6 +64,24 @@
     } catch (e) { /* navegador sem voz */ }
   }
 
+  // Chama o C#: no GitHub Pages ele roda no navegador (WebAssembly); no servidor, via API.
+  function chamar(metodo, dados) {
+    if (window.JOGUINHO_WASM) {
+      return window.JOGUINHO_WASM.then(function () {
+        return dados === undefined
+          ? DotNet.invokeMethodAsync('Joguinho.Pages', metodo)
+          : DotNet.invokeMethodAsync('Joguinho.Pages', metodo, dados);
+      });
+    }
+    var url = metodo === 'Topicos' ? 'api/topicos' : 'api/rodada';
+    var opcoes = dados === undefined ? undefined : {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    };
+    return fetch(url, opcoes).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+
   function mensagem(texto) { $('mensagem').textContent = texto; }
 
   function atualizarPlacar() {
@@ -131,17 +149,12 @@
     lista.appendChild(el('p', 'ajuda', 'Carregando exercícios...'));
     mensagem('Preparando exercícios novos...');
 
-    fetch('api/rodada', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        topicos: estado.topicos,
-        quantidade: POR_RODADA,
-        nivel: estado.nivel,
-        vistos: Array.from(estado.vistos)
-      })
+    chamar('Sortear', {
+      topicos: estado.topicos,
+      quantidade: POR_RODADA,
+      nivel: estado.nivel,
+      vistos: Array.from(estado.vistos)
     })
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (rodada) {
         estado.rodada = rodada.exercicios || [];
         mostrarRodada();
@@ -153,7 +166,7 @@
       })
       .catch(function () {
         lista.innerHTML = '';
-        var erro = el('div', 'erro', 'Não consegui buscar os exercícios. Confira se o servidor está rodando (dotnet run --project src/Joguinho.Web).');
+        var erro = el('div', 'erro', 'Não consegui preparar os exercícios. Recarregue a página.');
         lista.appendChild(erro);
         mensagem('Ops! Algo deu errado.');
       });
@@ -435,11 +448,10 @@
     pintarMenu();
   });
 
-  fetch('api/topicos')
-    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function (lista) { estado.todosTopicos = lista; montarMenu(); })
+  chamar('Topicos')
+    .then(function (lista) { estado.todosTopicos = lista; montarMenu(); mensagem('Escolha o que quer treinar.'); })
     .catch(function () {
-      $('progresso').textContent = 'Não consegui falar com o servidor. Rode: dotnet run --project src/Joguinho.Web';
+      $('progresso').textContent = 'Não consegui carregar o jogo. Recarregue a página.';
       $('comecar').disabled = true;
     });
 })();
